@@ -5,6 +5,7 @@ from mediapipe.tasks.python import vision
 import numpy as np
 import camerafeed
 import cv2 as cv
+import datetime
 
 #This is mainly following the tutorial Google has on MediaPipe. Made a few 
 #changes to ensure proper types were received by specific methods
@@ -16,21 +17,20 @@ PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 latest_frame = None
 
-def print_result(result: PoseLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
+def callback(result: PoseLandmarkerResult, output_image: mp.Image, timestamp_ms: int): # type: ignore
     global latest_frame
     
     rgb_image = output_image.numpy_view()
     annotated_image = draw_landmarks_on_image(rgb_image, result)
     latest_frame = cv.cvtColor(annotated_image, cv.COLOR_RGB2BGR)
+
     
-    
-    
-    #print('pose landmarker result: {}'.format(result))
     
 options = PoseLandmarkerOptions(
-    base_options = BaseOptions(model_asset_path=r"C:\Users\joshu\Documents\idk_man_the_fucking_shotput_coach_thing\pose_landmarker_heavy.task"),
+    base_options = BaseOptions(model_asset_path=r"C:\Users\joshu\Documents\projects\idk_man_the_fucking_shotput_coach_thing\pose_landmarker_heavy.task"),
     running_mode=VisionRunningMode.LIVE_STREAM,
-    result_callback=print_result)
+    result_callback=callback,
+    )
 
 def draw_landmarks_on_image(rgb_image, result):
   pose_landmarks_list = result.pose_landmarks
@@ -52,24 +52,75 @@ def draw_landmarks_on_image(rgb_image, result):
 vid_object = camerafeed.vid_object
 
 with PoseLandmarker.create_from_options(options) as landmarker:
-   
-    while True:
-        if(vid_object.filming is False):
-            break
-        frame_timestamp_ms = vid_object.
-        frame = vid_object.previous_frame
-       
-        if frame is not None and frame.ndim == 3:
+    temp_i = -1
+    try:
+        cv.namedWindow("Test", cv.WINDOW_NORMAL)
+        while vid_object.filming:
+            if(vid_object.i == 0):
+                continue
             
-            rgb_frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
-            landmarker.detect_async(mp_image, frame_timestamp_ms)
+            i = vid_object.i - 1
             
-        
-        if latest_frame is not None:
-            cv.imshow("Test", latest_frame)
-        
-        if cv.waitKey(1) == ord('q'):
-            vid_object.filming = False
-            quit()
-    cv.destroyAllWindows()
+            footage = vid_object.footage
+            frame_info = vid_object.footage.get(i)
+            
+            if frame_info is not None and (temp_i != i):
+                
+                frame = frame_info[0]
+                frame_timestamp_ms = frame_info[1]
+                
+                timestamp = datetime.datetime.now()
+                format_timestamp = (timestamp.strftime('%Y-%m-%d %H:%M:%S'))
+                org = (10, 30)
+                font = cv.FONT_HERSHEY_SIMPLEX
+                scale = 1.0
+                color = (255, 255, 255)
+                thickness = 1
+    
+                height, width, _ = frame.shape
+                aspect_ratio = vid_object.aspect_ratio
+                height = round((width / aspect_ratio), 0)
+
+                (text_width, text_height), baseline = cv.getTextSize(format_timestamp,
+                                                          font,
+                                                          scale,
+                                                          thickness)
+                x_offset = int(width * 0.05)
+                y_offset = int(height * 0.05)
+            
+                org_x = int(width - text_width - x_offset)
+                org_y = int(height - y_offset)
+    
+                cv.rectangle(
+                    frame,
+                    (org_x - 2, org_y - text_height - 2),
+                    (org_x + text_width + 2, org_y + baseline + 2),
+                    (0, 0, 0),
+                    thickness = -1)
+    
+                cv.putText(frame,
+                        format_timestamp,
+                        (org_x, org_y),
+                        font,
+                        scale,
+                        color,
+                        thickness)
+                
+                rgb_frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+                mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+                landmarker.detect_async(mp_image, frame_timestamp_ms)
+                
+                if latest_frame is not None:
+                    
+                    cv.imshow("Test", latest_frame)
+                
+            temp_i = i
+            
+            if cv.waitKey(1) == ord('q'):
+                vid_object.filming = False
+                cv.destroyAllWindows()
+                vid_object.thread.join()
+                break
+    except KeyboardInterrupt:
+        vid_object.filming = False
+        print("Goodbye!")
