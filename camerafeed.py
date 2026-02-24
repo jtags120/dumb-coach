@@ -7,7 +7,7 @@ from datetime import datetime
 class video_feed:
 
     def __init__(self):
-        self.filming = True
+        self.filming = False
         self.footage = {}
         self.fps = 0
         self.i = 0
@@ -15,24 +15,37 @@ class video_feed:
         self.aspect_ratio = 0.0
         self.CAM_FPS = 0
         self.realtime_fps = 0.0
+        self.recording = False
+        self.out = cv.VideoWriter()
         
     def __call__(self):
         self.getVideo()
  
     def getVideo(self):
-        cap = cv.VideoCapture(0)
         ONE_MORBILLION = 1_000_000
-        self.CAM_FPS = cap.get(cv.CAP_PROP_FPS)
+        if(self.recording is True):
+            filename = input("Enter the name of the file to save to: ")
+            
+            
+        cap = cv.VideoCapture(0)
+        width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+        self.CAM_FPS = int(cap.get(cv.CAP_PROP_FPS))
+        
+        if(self.recording is True):
+            self.out = cv.VideoWriter(rf"C:\Users\joshu\Documents\projects\idk_man_the_fucking_shotput_coach_thing\vods\{filename}.avi",
+                                 cv.VideoWriter.fourcc('M', 'J', 'P', 'G'),
+                                 20,
+                                 (width, height))
+    
+        start_timestamp = time.perf_counter_ns() // ONE_MORBILLION
+        
         
         if not cap.isOpened():
             print("Cannot open camera")
             exit()
-            
-        width = cap.get(cv.CAP_PROP_FRAME_WIDTH)
-        height = cap.get(cv.CAP_PROP_FRAME_HEIGHT)
-        self.aspect_ratio = width / height
         
-        start_timestamp = time.perf_counter_ns() // ONE_MORBILLION
+        self.aspect_ratio = width / height
         
         while self.filming:
             
@@ -62,9 +75,6 @@ class video_feed:
         
         self.realtime_fps = self.num_of_frame // total_time
 
-
 vid_object=video_feed()
 
 vid_object.thread = threading.Thread(target=vid_object)
-
-vid_object.thread.start()
