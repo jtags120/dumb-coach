@@ -13,7 +13,6 @@ PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
 PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 latest_frame = None
-live = False
 
 
 def callback(result: PoseLandmarkerResult, output_image: mp.Image, timestamp_ms: int): # type: ignore
@@ -59,21 +58,6 @@ with PoseLandmarker.create_from_options(options) as landmarker:
             vid_object.filming = True
             vid_object.thread.start()
             print("Press Q to end the stream!")
-        
-        
-        while True:    
-            live_status = input("Would you like to upload a video or livestream?(upload/stream)")
-            if live_status in ["upload", "stream"]:
-                break
-            print("Please enter upload or stream")
-        if live_status is "upload":
-            path_to_video = input("Please enter the path to your video")
-        elif(live_status is "stream"):
-            if(input("Would you like to save this video?(Enter y/n): ") == "y"):
-                        vid_object.recording = True
-                        #Where to save
-                        #Always save there?
-            live = True
             
         while vid_object.filming:
             

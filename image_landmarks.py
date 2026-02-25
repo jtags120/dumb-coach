@@ -12,7 +12,7 @@ PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
 VisionRunningMode = mp.tasks.vision.RunningMode
 
 options = PoseLandmarkerOptions(
-    base_options = BaseOptions(model_asset_path=r"C:\Users\joshu\Documents\projects\testcode\pose_landmarker_heavy.task"),
+    base_options = BaseOptions(model_asset_path=r"C:\Users\joshu\Documents\projects\idk_man_the_fucking_shotput_coach_thing\pose_landmarker_heavy.task"),
     running_mode=VisionRunningMode.IMAGE)
 
 def draw_landmarks_on_image(rgb_image, result):
