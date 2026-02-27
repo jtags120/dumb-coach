@@ -7,7 +7,7 @@ import camerafeed
 import cv2 as cv
 import datetime
 import config
-#import kalman_smooth
+import kalman_smooth
 
     
 BaseOptions = mp.tasks.BaseOptions
