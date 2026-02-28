@@ -1,4 +1,6 @@
-/.vods
-bingus.avi
-__pycache
+__pycache__
 /.media/
+refresh_gitignore.bat
+pose_landmarker_heavy.task
+.gitignore
+/processing
