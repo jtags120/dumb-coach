@@ -4,6 +4,7 @@ from mediapipe.tasks.python.vision import drawing_styles
 from mediapipe.tasks.python import vision
 import numpy as np
 import cv2 as cv
+import config
 
 
 BaseOptions = mp.tasks.BaseOptions
@@ -32,18 +33,17 @@ def draw_landmarks_on_image(rgb_image, result):
 
     return annotated_image
 
+def run():
+    with PoseLandmarker.create_from_options(options) as landmarker:
+        image = mp.Image.create_from_file(config.image_path)
+        pose_result = landmarker.detect(image)
+        pose_landmarks = pose_result.pose_landmarks
+        
+        np_image = image.numpy_view()  # returns RGB np array
+        bgr_image = cv.cvtColor(np_image, cv.COLOR_RGB2BGR)  # convert for OpenCV display
 
-with PoseLandmarker.create_from_options(options) as landmarker:
-    image_file = input("Enter your photo: ")
-    image = mp.Image.create_from_file(image_file)
-    pose_result = landmarker.detect(image)
-    pose_landmarks = pose_result.pose_landmarks
-    
-    np_image = image.numpy_view()  # returns RGB np array
-    bgr_image = cv.cvtColor(np_image, cv.COLOR_RGB2BGR)  # convert for OpenCV display
+        landmark_image = draw_landmarks_on_image(bgr_image, pose_landmarks)
 
-    landmark_image = draw_landmarks_on_image(bgr_image, pose_landmarks)
-
-    cv.imshow("Test", landmark_image)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+        cv.imshow("Test", landmark_image)
+        cv.waitKey(0)
+        cv.destroyAllWindows()
